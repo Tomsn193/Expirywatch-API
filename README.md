@@ -1,32 +1,96 @@
 # ExpiryWatch API
-A learning project: a FastAPI backend for tracking product records and, in later stages, stock batches and expiry dates.
 
-**Target User & Problem:** Designed for owners of small pharmacies or patent medicine shops in Nigeria. It solves the problem of stock expiring unnoticed when quantities and expiry dates are tracked informally, which causes avoidable waste and potential safety risks.
+A learning project focused on building a FastAPI backend for tracking product records, with future support for stock batches and expiry-date monitoring.
 
-**Stack:** Python, FastAPI, SQLAlchemy, Alembic, PostgreSQL (via Docker).
+## Overview
 
-**Current Status:** Week 1 — product CRUD in progress.
+ExpiryWatch is designed for owners of small pharmacies and patent medicine shops in Nigeria. The project addresses a common operational issue: products and stock items are often tracked informally, which can lead to expired items going unnoticed, causing financial waste and potential safety risks.
 
-**Prerequisites:** 
-* Python 3.10+
-* Docker (for the local PostgreSQL database)
+The system aims to provide a simple, reliable way to manage product information and, later, monitor stock movement, batch details, and expiry dates with minimal friction.
 
-**Setup and Run Instructions:**
-1. Clone the repository and navigate into the project directory.
-2. Copy `.env.example` to a new file named `.env`. Set `POSTGRES_PASSWORD` to a long, URL-safe local password and use the same value in `DATABASE_URL`.
-3. Start the local database using Docker:
-   `docker compose up -d`
-4. Create and activate your virtual environment:
-   `python -m venv .venv`
-   `source .venv/bin/activate` (Mac/Linux) or `.\.venv\Scripts\Activate.ps1` (Windows)
-5. Install dependencies:
-   `pip install -r requirements.txt`
-6. (Database migrations and run commands will be added here once implemented).
+## Tech Stack
 
-The Compose database port is bound to `127.0.0.1` and is intended for local development only. Keep `.env` private; for production, provide credentials through your deployment platform's secret manager and use a private database network rather than these local settings.
+- Python 3.10+
+- FastAPI
+- SQLAlchemy
+- Alembic
+- PostgreSQL (running locally via Docker)
 
-**Documentation:**
-See the `/docs` folder for the idea one-pager, work plan, data model, and API specifications.
+## Current Status
 
-**Warning:** 
+Week 1 — product CRUD is in progress.
+
+## Features
+
+- Product creation, reading, updating, and deletion
+- Local PostgreSQL setup for development
+- Clean API structure using FastAPI and SQLAlchemy
+- Future support for inventory batches, expiry tracking, and stock alerts
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- Python 3.10 or newer
+- Docker installed and running
+
+## Local Setup
+
+1. Clone the repository and move into the project directory.
+2. Copy `.env.example` to a new file named `.env`.
+3. Set a strong local password for `POSTGRES_PASSWORD` and use the same value in `DATABASE_URL`.
+4. Start the database container:
+
+   ```bash
+   docker compose up -d
+   ```
+
+5. Create and activate a virtual environment:
+
+   ```bash
+   python -m venv .venv
+   ```
+
+   On macOS/Linux:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   On Windows PowerShell:
+
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+6. Install the project dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+7. Run the application (when the project is ready):
+
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+8. Database migrations and additional run commands will be added as the project evolves.
+
+## Environment and Security Notes
+
+- The local PostgreSQL database is bound to `127.0.0.1` and is intended only for development.
+- Keep your `.env` file private.
+- In production, store credentials using your deployment platform's secret manager and keep the database on a private network rather than exposing local development settings.
+
+## Documentation
+
+See the `/docs` folder for the project concept, work plan, data model, and API specifications.
+
+## Entity Relationship Diagram (ERD)
+
+![ExpiryWatch ERD](docs/erd.png)
+
+## Warning
+
 This is a learning project. Use dummy data only. Never input real pharmacy stock records, personal customer details, or real passwords.

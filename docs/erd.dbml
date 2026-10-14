@@ -1,0 +1,46 @@
+Table suppliers {
+  id integer [primary key, increment]
+  name varchar(150) [not null]
+  phone varchar(30)
+  email varchar(255)
+  created_at timestamptz [not null]
+}
+
+Table products {
+  id integer [primary key, increment]
+  name varchar(150) [not null]
+  generic_name varchar(150)
+  category varchar(80) [not null]
+  unit varchar(30) [not null]
+  reorder_level integer [not null, default: 0]
+  created_at timestamptz [not null]
+}
+
+Table batches {
+  id integer [primary key, increment]
+  product_id integer [not null]
+  supplier_id integer [not null]
+  batch_number varchar(80) [not null]
+  quantity_received integer [not null]
+  quantity_remaining integer [not null]
+  expiry_date date [not null]
+  received_date date [not null]
+
+  indexes {
+    (supplier_id, batch_number) [unique]
+    expiry_date
+  }
+}
+
+Table stock_adjustments {
+  id integer [primary key, increment]
+  batch_id integer [not null]
+  quantity_change integer [not null]
+  reason varchar(30) [not null]
+  note text
+  created_at timestamptz [not null]
+}
+
+Ref: products.id < batches.product_id
+Ref: suppliers.id < batches.supplier_id
+Ref: batches.id < stock_adjustments.batch_id
