@@ -1,0 +1,44 @@
+@baseUrl = http://127.0.0.1:8000
+
+### List all products
+GET {{baseUrl}}/products
+
+### Create a valid product
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "name": "Demo Ointment D",
+  "generic_name": "Demo compound D",
+  "category": "demo-cream",
+  "unit": "tube",
+  "reorder_level": 5
+}
+
+### Get a specific product (change ID if needed)
+GET {{baseUrl}}/products/1
+
+### Update a product
+PUT {{baseUrl}}/products/1
+Content-Type: application/json
+
+{
+  "name": "Demo Tablet A 500 mg - Updated",
+  "generic_name": "Demo compound A",
+  "category": "demo-tablet",
+  "unit": "tablet",
+  "reorder_level": 25
+}
+
+### Test Validation Error (Missing required 'name')
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "category": "demo-tablet",
+  "unit": "tablet",
+  "reorder_level": -10
+}
+
+### Test 404 Not Found
+GET {{baseUrl}}/products/9999
