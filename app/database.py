@@ -1,18 +1,30 @@
 import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Load the database URL from the environment (defaulting for safety)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://expirywatch_user:Q7n4Vx9mK2pL8sR5cT3wY6bH1jF0dA@localhost:5444/expirywatch_db")
+# Load variables from a local .env file (ignored by git) into the environment.
+load_dotenv()
 
-# Create the SQLAlchemy engine
-engine = create_engine(DATABASE_URL, echo=True)
+# The database URL (which contains the password) must come from the environment.
+# There is deliberately no default: credentials must never be hardcoded in the repo.
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set. Copy .env.example to .env and fill in your values."
+    )
 
-# Create a sessionmaker to yield database sessions
+# SQL logging is useful when debugging but noisy; keep it off unless SQL_ECHO=true.
+SQL_ECHO = os.getenv("SQL_ECHO", "false").lower() == "true"
+
+engine = create_engine(DATABASE_URL, echo=SQL_ECHO)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for SQLAlchemy models
 Base = declarative_base()
+
 
 def get_db():
     """Dependency to get a database session for a request."""

@@ -18,7 +18,7 @@ The system aims to provide a simple, reliable way to manage product information 
 
 ## Current Status
 
-Week 1 — product CRUD is in progress.
+Week 1 — complete: product CRUD (create, list, get, update, delete), migration, seed data and sample requests. Suppliers, batches and stock adjustments are planned for Week 2 (see `docs/data-model.md`).
 
 ## Features
 
@@ -69,18 +69,53 @@ Before you begin, make sure you have:
    pip install -r requirements.txt
    ```
 
-7. Run the application (when the project is ready):
+7. Apply the database migrations:
+
+   ```bash
+   alembic upgrade head
+   ```
+
+8. (Optional) Load a few rows of dummy data. The script skips seeding if products already exist:
+
+   ```bash
+   python scripts/seed_products.py
+   ```
+
+9. Run the application:
 
    ```bash
    uvicorn app.main:app --reload
    ```
 
-8. Database migrations and additional run commands will be added as the project evolves.
+10. Open the interactive docs at <http://127.0.0.1:8000/docs>, or try the sample requests in `requests/product.http` (VS Code "REST Client" extension).
+
+## API Overview
+
+| Method | Path | Success |
+| :--- | :--- | :--- |
+| GET | `/health` | `200` |
+| POST | `/products` | `201` |
+| GET | `/products` | `200` |
+| GET | `/products/{id}` | `200` |
+| PUT | `/products/{id}` | `200` |
+| DELETE | `/products/{id}` | `204` |
+
+Full details are in `docs/api-spec.md`.
+
+### Errors
+
+Every error uses one format, and stack traces are never returned:
+
+```json
+{ "error": { "code": "PRODUCT_NOT_FOUND", "message": "Product 9999 not found" } }
+```
+
+Invalid input returns **400** (not FastAPI's default 422) with `code: "INVALID_INPUT"` and a `details` list of the failing fields. See `docs/design-decisions.md` (DEC-004, DEC-005).
 
 ## Environment and Security Notes
 
 - The local PostgreSQL database is bound to `127.0.0.1` and is intended only for development.
-- Keep your `.env` file private.
+- Keep your `.env` file private. `DATABASE_URL` has no default in the code, so the app will not start without it.
 - In production, store credentials using your deployment platform's secret manager and keep the database on a private network rather than exposing local development settings.
 
 ## Documentation

@@ -23,10 +23,12 @@ target_metadata = Base.metadata
 
 # 3. Read the database URL from the environment
 def get_url():
-    return os.getenv(
-        "DATABASE_URL",
-        "postgresql+psycopg://expirywatch_user:Q7n4Vx9mK2pL8sR5cT3wY6bH1jF0dA@localhost:5444/expirywatch_db"
-    )
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Copy .env.example to .env and fill in your values."
+        )
+    return url
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

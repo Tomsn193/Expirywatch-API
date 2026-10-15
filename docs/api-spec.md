@@ -18,6 +18,17 @@
       }
     }
     ```
+    Validation errors (`400`, code `INVALID_INPUT`) also include a `details` list:
+    ```json
+    {
+      "error": {
+        "code": "INVALID_INPUT",
+        "message": "Validation failed",
+        "details": [{ "field": "reorder_level", "message": "Input should be greater than or equal to 0" }]
+      }
+    }
+    ```
+    Unknown routes return `404 NOT_FOUND`, wrong methods return `405 METHOD_NOT_ALLOWED`, and unexpected server errors return `500 INTERNAL_ERROR` with no internal details.
 
 ## Week 1: Product Endpoints (Implemented)
 
@@ -28,6 +39,7 @@
 | **GET** | `/products/{id}` | Retrieve one product | `200 OK` | `404 Not Found` |
 | **PUT** | `/products/{id}` | Full update of editable fields | `200 OK` | `400 Bad Request`, `404 Not Found` |
 | **DELETE** | `/products/{id}` | Delete a product | `204 No Content` | `404 Not Found` |
+| **GET** | `/health` | Check the API is running (returns `{"status": "ok"}`) | `200 OK` | n/a |
 
 *Note: For PUT requests, `name`, `category`, `unit`, and `reorder_level` are required. `generic_name` is optional. Clients cannot update the `id` or `created_at` fields.*
 

@@ -1,13 +1,26 @@
 # app/routers/products.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
+from app.errors import APIError
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 
 router = APIRouter(prefix="/products", tags=["Products"])
+
+
+def get_product_or_404(db: Session, product_id: int) -> Product:
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if product is None:
+        raise APIError(
+            status.HTTP_404_NOT_FOUND,
+            "PRODUCT_NOT_FOUND",
+            f"Product {product_id} not found",
+        )
+    return product
+
 
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
@@ -23,22 +36,12 @@ def list_products(db: Session = Depends(get_db)):
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail={"error": {"code": "PRODUCT_NOT_FOUND", "message": f"Product {product_id} not found"}}
-        )
+    db_product = get_product_or_404(db, product_id)
     return db_product
 
 @router.put("/{product_id}", response_model=ProductResponse)
 def update_product(product_id: int, product: ProductUpdate, db: Session = Depends(get_db)):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail={"error": {"code": "PRODUCT_NOT_FOUND", "message": f"Product {product_id} not found"}}
-        )
+    db_product = get_product_or_404(db, product_id)
     
     update_data = product.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -50,12 +53,7 @@ def update_product(product_id: int, product: ProductUpdate, db: Session = Depend
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(product_id: int, db: Session = Depends(get_db)):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail={"error": {"code": "PRODUCT_NOT_FOUND", "message": f"Product {product_id} not found"}}
-        )
+    db_product = get_product_or_404(db, product_id)
     
     db.delete(db_product)
     db.commit()

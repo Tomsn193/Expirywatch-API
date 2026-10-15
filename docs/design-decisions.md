@@ -20,3 +20,14 @@
 *   **Context:** FastAPI defaults to 422 for request validation; the BuildLab guide mentions 400 for bad input.
 *   **Decision:** Override FastAPI's default and return `400 Bad Request` for validation failures.
 *   **Reason:** Aligns exactly with the assessment expectations and the API specification.
+
+## DEC-005 — One consistent error format
+*   **Context:** FastAPI returns different shapes by default (`{"detail": ...}` for HTTP errors, a list for validation errors), and unhandled exceptions can leak internals.
+*   **Decision:** All errors go through handlers in `app/errors.py` and return `{"error": {"code", "message", "details"?}}`. A catch-all handler returns a generic 500 and logs the real error server-side only.
+*   **Reason:** Clients can parse every error the same way, and no stack traces or internals are exposed.
+
+## DEC-006 — No credentials in code
+*   **Context:** Database credentials must never be committed to a public repository.
+*   **Decision:** `DATABASE_URL` is read only from the environment (`.env` locally). The app and Alembic fail with a clear message if it is missing. `.env.example` holds placeholders only.
+*   **Reason:** Prevents secrets from leaking through the code or git history.
+
