@@ -7,3 +7,5 @@ pydantic-settings
 pytest
 httpx
 python-dotenv
+PyJWT==2.8.0
+bcrypt==4.2.0

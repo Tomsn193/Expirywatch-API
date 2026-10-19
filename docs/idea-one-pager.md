@@ -7,6 +7,9 @@
 - Entities: products, suppliers, batches, stock_adjustments
 - Core flow: add a product -> receive a batch with an expiry date -> list batches expiring within N days -> record a stock adjustment
 
+## Github repository : 
+https://github.com/Tomsn193/Expirywatch-API
+
 ## In scope
 - Create, list, retrieve, update, and delete product records
 - Plan the schema for products, suppliers, batches, and stock adjustments

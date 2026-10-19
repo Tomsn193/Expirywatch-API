@@ -9,3 +9,6 @@
 | Update an existing ID | 200; updated fields are returned | Pass: Returned 200 OK with updated name |
 | Create without required fields | 400; validation error | Pass: Returned 400 Bad Request |
 | Use a negative reorder_level | 400; validation error | Pass: Returned 400 Bad Request |
+| Delete a product | 204; no body; product no longer listed |  |
+| Create with a blank name | 400; validation error (INVALID_INPUT) |  |
+| Seed data visible | 200; seed products appear in GET /products |  |

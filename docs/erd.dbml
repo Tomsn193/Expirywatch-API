@@ -1,13 +1,23 @@
+Table users {
+  id integer [primary key, increment]
+  email varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+  role varchar(20) [not null, default: 'owner']
+  created_at timestamptz [not null]
+}
+
 Table suppliers {
   id integer [primary key, increment]
+  owner_id integer [not null]
   name varchar(150) [not null]
   phone varchar(30)
-  email varchar(255)
+  email varchar(254)
   created_at timestamptz [not null]
 }
 
 Table products {
   id integer [primary key, increment]
+  owner_id integer [not null]
   name varchar(150) [not null]
   generic_name varchar(150)
   category varchar(80) [not null]
@@ -20,7 +30,7 @@ Table batches {
   id integer [primary key, increment]
   product_id integer [not null]
   supplier_id integer [not null]
-  batch_number varchar(80) [not null]
+  batch_number varchar(60) [not null]
   quantity_received integer [not null]
   quantity_remaining integer [not null]
   expiry_date date [not null]
@@ -37,10 +47,12 @@ Table stock_adjustments {
   batch_id integer [not null]
   quantity_change integer [not null]
   reason varchar(30) [not null]
-  note text
+  note varchar(255)
   created_at timestamptz [not null]
 }
 
+Ref: users.id < products.owner_id
+Ref: users.id < suppliers.owner_id
 Ref: products.id < batches.product_id
 Ref: suppliers.id < batches.supplier_id
 Ref: batches.id < stock_adjustments.batch_id
