@@ -1,0 +1,47 @@
+@baseUrl = http://127.0.0.1:8000
+@token = 
+### 1. Sign up user
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "owner1@example.test",
+  "password": "password123"
+}
+
+### 2. Log in user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "owner1@example.test",
+  "password": "password123"
+}
+
+### 3. Get current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 4. Create product with token
+POST {{baseUrl}}/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Paracetamol 500mg",
+  "generic_name": "Acetaminophen",
+  "category": "Pain Relief",
+  "unit": "tablet",
+  "reorder_level": 50
+}
+
+### 5. Create product without token (Should return 401)
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Test Product",
+  "category": "Pain Relief",
+  "unit": "tablet",
+  "reorder_level": 10
+}

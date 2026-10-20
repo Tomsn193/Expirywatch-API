@@ -20,6 +20,7 @@ class ProductUpdate(ProductBase):
 
 class ProductResponse(ProductBase):
     id: int
+    owner_id: int
     created_at: datetime
     
     # This tells Pydantic to read data even if it is not a dictionary (SQLAlchemy objects)

@@ -1,2 +1,2 @@
-# app/models/__init__.py
-from app.models.product import Product
+from .product import Product
+from .user import User  # ADD THIS LINE

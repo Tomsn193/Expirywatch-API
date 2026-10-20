@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.errors import register_error_handlers
 from app.routers import products
+from app.routers import products, auth
 
 app = FastAPI(title="ExpiryWatch API", version="1.0.0")
 
@@ -9,6 +10,7 @@ register_error_handlers(app)
 
 # Include the endpoints
 app.include_router(products.router)
+app.include_router(auth.router)
 
 
 @app.get("/health", tags=["Health"])

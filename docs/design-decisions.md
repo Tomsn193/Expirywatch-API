@@ -31,3 +31,19 @@
 *   **Decision:** `DATABASE_URL` is read only from the environment (`.env` locally). The app and Alembic fail with a clear message if it is missing. `.env.example` holds placeholders only.
 *   **Reason:** Prevents secrets from leaking through the code or git history.
 
+## DEC-007 — Field Length Reconciliations
+- Context: ERD and Data Model docs had mismatched lengths in Week 1.
+- Decision: Settled on `email` as String(254), `batch_number` as String(60), and `note` as String(255).
+- Reason: 254 is standard for emails, 60 is plenty for dummy batch numbers, and 255 keeps notes concise.
+
+## DEC-008 — Ownership Hierarchy
+- Context: Need to verify ownership for batches and stock adjustments.
+- Decision: Add `owner_id` only to `products` and `suppliers`.
+- Reason: A batch belongs to a product, and an adjustment belongs to a batch. Ownership can be checked securely through the chain without duplicating `owner_id` on every table.
+
+## DEC-009 — Open Questions Resolution
+- Context: Two open questions from Week 1 needed answers.
+- Decision: 
+  1. `name` and `unit` together will NOT be enforced as strictly unique at the database level for now.
+  2. `expiry_date` MUST be later than `received_date`.
+- Reason: Rejecting past expiry dates prevents bad data entry.
