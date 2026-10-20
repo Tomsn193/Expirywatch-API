@@ -1,5 +1,5 @@
 @baseUrl = http://127.0.0.1:8000
-@token = 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzkyNTMwNzI3fQ.0lwtczwtr4IEz1qs1G7ou_1gLadl5jqtJuulpqhOssk
 ### 1. Sign up user
 POST {{baseUrl}}/auth/signup
 Content-Type: application/json

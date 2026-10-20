@@ -1,0 +1,58 @@
+@baseUrl = http://127.0.0.1:8000
+# Paste your active token from /auth/login here:
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzkyNTMwNzI3fQ.0lwtczwtr4IEz1qs1G7ou_1gLadl5jqtJuulpqhOssk
+
+### 1. Create a Supplier
+POST {{baseUrl}}/suppliers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Lagos Pharma Distributors",
+  "phone": "+2348000000000",
+  "email": "contact@lagospharma.com"
+}
+
+### 2. Create a Batch (Make sure product_id 1 exists)
+POST {{baseUrl}}/batches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "supplier_id": 1,
+  "batch_number": "BATCH-2026-A1",
+  "quantity_received": 100,
+  "expiry_date": "2027-10-20",
+  "received_date": "2026-10-20"
+}
+
+### 3. Test Expiring Soon Query
+GET {{baseUrl}}/batches/expiring-soon?days=365
+Authorization: Bearer {{token}}
+
+### 4. Adjust Stock (Sell 5 items)
+POST {{baseUrl}}/batches/1/adjustments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "quantity_change": -5,
+  "reason": "sold",
+  "note": "Morning sale"
+}
+
+### 5. Attempt Invalid Adjustment (Would go negative)
+POST {{baseUrl}}/batches/1/adjustments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "quantity_change": -5000,
+  "reason": "damaged",
+  "note": "Water damage"
+}
+
+### 6. View Adjustment History for Batch
+GET {{baseUrl}}/batches/1/adjustments
+Authorization: Bearer {{token}}
