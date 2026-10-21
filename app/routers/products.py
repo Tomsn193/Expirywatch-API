@@ -93,6 +93,9 @@ def delete_product(
     db_product = get_product_or_404(db, product_id)
     verify_product_ownership(db_product, current_user)
 
+    if db_product.batches:
+        raise APIError(status.HTTP_409_CONFLICT, "PRODUCT_HAS_BATCHES", "Cannot delete product with active batches")
+
     db.delete(db_product)
     db.commit()
     return None

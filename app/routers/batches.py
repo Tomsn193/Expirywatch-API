@@ -66,7 +66,7 @@ def list_batches(
 # MUST be declared before /{batch_id} to prevent routing conflicts
 @router.get("/expiring-soon", response_model=List[BatchResponse])
 def get_expiring_soon(
-    days: int = Query(30, ge=0),
+    days: int = Query(30, ge=0, le=365, description="Number of days to look ahead for expiring batches"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -92,11 +92,11 @@ def get_batch(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    batch = db.query(Batch).join(Product).filter(
-        Batch.id == batch_id, Product.owner_id == current_user.id
-    ).first()
-    
+    batch = db.query(Batch).filter(Batch.id == batch_id).first()
     if not batch:
         raise APIError(status.HTTP_404_NOT_FOUND, "BATCH_NOT_FOUND", f"Batch {batch_id} not found")
+    
+    if batch.product.owner_id != current_user.id:
+        raise APIError(status.HTTP_403_FORBIDDEN, "FORBIDDEN", "You do not have access to this batch")
         
     return batch

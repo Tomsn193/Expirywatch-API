@@ -1,6 +1,6 @@
 @baseUrl = http://127.0.0.1:8000
 # Paste your active token from /auth/login here:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzkyNTMwNzI3fQ.0lwtczwtr4IEz1qs1G7ou_1gLadl5jqtJuulpqhOssk
+@token = replace_with_actual_token
 
 ### 1. Create a Supplier
 POST {{baseUrl}}/suppliers

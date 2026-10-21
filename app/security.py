@@ -18,3 +18,6 @@ def create_access_token(data: dict) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+if SECRET_KEY == "change_me_to_a_long_random_string" or len(SECRET_KEY) < 32:
+    raise ValueError("FATAL: A real, secure JWT_SECRET_KEY of at least 32 characters is required.")

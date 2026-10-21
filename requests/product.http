@@ -1,10 +1,13 @@
 @baseUrl = http://127.0.0.1:8000
+@token = replace_with_actual_token
 
 ### List all products
 GET {{baseUrl}}/products
+Authorization: Bearer {{token}}
 
 ### Create a valid product
 POST {{baseUrl}}/products
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -17,9 +20,11 @@ Content-Type: application/json
 
 ### Get a specific product (change ID if needed)
 GET {{baseUrl}}/products/1
+Authorization: Bearer {{token}}
 
 ### Update a product
 PUT {{baseUrl}}/products/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -32,6 +37,7 @@ Content-Type: application/json
 
 ### Test Validation Error (Missing required 'name')
 POST {{baseUrl}}/products
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -42,3 +48,4 @@ Content-Type: application/json
 
 ### Test 404 Not Found
 GET {{baseUrl}}/products/9999
+Authorization: Bearer {{token}}

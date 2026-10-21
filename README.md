@@ -1,35 +1,42 @@
-# ExpiryWatch API
+# ExpiryWatch API — Small Pharmacy Expiry Tracker
 
-A learning project focused on building a FastAPI backend for tracking product records, with future support for stock batches and expiry-date monitoring.
+A FastAPI backend that helps owners of small pharmacies and patent medicine shops track products, suppliers, stock batches and expiry dates, so expired stock is noticed before it becomes a financial loss or a safety risk.
 
 ## Overview
 
-ExpiryWatch is designed for owners of small pharmacies and patent medicine shops in Nigeria. The project addresses a common operational issue: products and stock items are often tracked informally, which can lead to expired items going unnoticed, causing financial waste and potential safety risks.
+Many small shops track stock informally, so items can expire unnoticed. ExpiryWatch records each delivery (a batch) with its own expiry date, keeps a full history of every stock change, and lists the batches that are about to expire.
 
-The system aims to provide a simple, reliable way to manage product information and, later, monitor stock movement, batch details, and expiry dates with minimal friction.
+Each owner has their own account. An owner can only see and change their own products, suppliers, batches and stock adjustments.
 
 ## Tech Stack
 
 - Python 3.10+
 - FastAPI
-- SQLAlchemy
-- Alembic
-- PostgreSQL (running locally via Docker)
+- SQLAlchemy and Alembic
+- PostgreSQL 16 (run locally with Docker)
+- JWT bearer authentication (PyJWT) and bcrypt password hashing
 
 ## Current Status
 
-Week 1 — complete: product CRUD (create, list, get, update, delete), migration, seed data and sample requests. Suppliers, batches and stock adjustments are planned for Week 2 (see `docs/data-model.md`).
+**Week 2: feature work complete, with known limitations.** Week 2 adds authentication and ownership, suppliers, batches, stock adjustments, the expiring-soon query and one error format. Some behaviour does not yet match the intended design; see [Known limitations](#known-limitations) below.
+
+- Week 1 (products) is tagged `week-1`.
+- Week 2 will be tagged `week-2` once the known limitations are fixed.
+
+Full endpoint details are in [`docs/api-spec.md`](docs/api-spec.md).
 
 ## Features
 
-- Product creation, reading, updating, and deletion
-- Local PostgreSQL setup for development
-- Clean API structure using FastAPI and SQLAlchemy
-- Future support for inventory batches, expiry tracking, and stock alerts
+- Sign up and log in, with passwords stored only as bcrypt hashes
+- Protected routes: every product, supplier, batch and adjustment route requires a valid token
+- Ownership checks on every record
+- Suppliers, with protection against deleting a supplier that still has batches
+- Batches with duplicate-number checks and reference checks
+- Stock changes only through adjustment records, applied inside a row-locked transaction, with a database constraint that stops stock going negative
+- An expiring-soon query for batches with stock left
+- One error format across the whole API, with no stack traces or SQL in responses
 
 ## Prerequisites
-
-Before you begin, make sure you have:
 
 - Python 3.10 or newer
 - Docker installed and running
@@ -38,14 +45,20 @@ Before you begin, make sure you have:
 
 1. Clone the repository and move into the project directory.
 2. Copy `.env.example` to a new file named `.env`.
-3. Set a strong local password for `POSTGRES_PASSWORD` and use the same value in `DATABASE_URL`.
-4. Start the database container:
+3. Set a strong local password for `POSTGRES_PASSWORD`, and use the same value in `DATABASE_URL`.
+4. Generate a JWT secret and set it as `JWT_SECRET_KEY` in `.env`:
+
+   ```bash
+   python -c "import secrets; print(secrets.token_urlsafe(48))"
+   ```
+
+5. Start the database container:
 
    ```bash
    docker compose up -d
    ```
 
-5. Create and activate a virtual environment:
+6. Create and activate a virtual environment:
 
    ```bash
    python -m venv .venv
@@ -63,22 +76,16 @@ Before you begin, make sure you have:
    .\.venv\Scripts\Activate.ps1
    ```
 
-6. Install the project dependencies:
+7. Install the project dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-7. Apply the database migrations:
+8. Apply the database migrations:
 
    ```bash
    alembic upgrade head
-   ```
-
-8. (Optional) Load a few rows of dummy data. The script skips seeding if products already exist:
-
-   ```bash
-   python scripts/seed_products.py
    ```
 
 9. Run the application:
@@ -87,40 +94,91 @@ Before you begin, make sure you have:
    uvicorn app.main:app --reload
    ```
 
-10. Open the interactive docs at <http://127.0.0.1:8000/docs>, or try the sample requests in `requests/product.http` (VS Code "REST Client" extension).
+10. Open the interactive docs at <http://127.0.0.1:8000/docs>, or use the sample requests in `requests/` (see [Trying the API](#trying-the-api)).
+
+The optional seed script (`scripts/seed_products.py`) currently fails after the Week 2 changes. See [Known limitations](#known-limitations).
+
+## Authentication
+
+Sign up with an email and password, then log in to receive an access token. Send the token on every protected request:
+
+```
+Authorization: Bearer <access_token>
+```
+
+- Passwords must be 8 to 72 characters.
+- Tokens expire after `ACCESS_TOKEN_EXPIRE_MINUTES` (default 60).
+- Login returns the same error whether the email is unknown or the password is wrong, so the API does not reveal which accounts exist.
+
+Example login from the command line:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "owner1@example.test", "password": "demo-pass-123"}'
+```
 
 ## API Overview
 
-| Method | Path | Success |
-| :--- | :--- | :--- |
-| GET | `/health` | `200` |
-| POST | `/products` | `201` |
-| GET | `/products` | `200` |
-| GET | `/products/{id}` | `200` |
-| PUT | `/products/{id}` | `200` |
-| DELETE | `/products/{id}` | `204` |
+All routes except `GET /health`, `POST /auth/signup` and `POST /auth/login` require a bearer token.
 
-Full details are in `docs/api-spec.md`.
+| Method | Path | Success | Purpose |
+| :--- | :--- | :--- | :--- |
+| GET | `/health` | `200` | Check the API is running |
+| POST | `/auth/signup` | `201` | Create an owner account |
+| POST | `/auth/login` | `200` | Get an access token |
+| GET | `/auth/me` | `200` | Return the logged-in owner |
+| POST | `/products` | `201` | Create a product |
+| GET | `/products` | `200` | List your products |
+| GET | `/products/{id}` | `200` | Get one of your products |
+| PUT | `/products/{id}` | `200` | Update one of your products |
+| DELETE | `/products/{id}` | `204` | Delete one of your products |
+| POST | `/suppliers` | `201` | Create a supplier |
+| GET | `/suppliers` | `200` | List your suppliers |
+| GET | `/suppliers/{id}` | `200` | Get one of your suppliers |
+| PUT | `/suppliers/{id}` | `200` | Update one of your suppliers |
+| DELETE | `/suppliers/{id}` | `204` | Delete a supplier with no batches |
+| POST | `/batches` | `201` | Record a delivery (batch) |
+| GET | `/batches` | `200` | List your batches |
+| GET | `/batches/expiring-soon?days=30` | `200` | Batches with stock expiring within N days |
+| GET | `/batches/{id}` | `200` | Get one batch |
+| POST | `/batches/{id}/adjustments` | `201` | Record a stock change |
+| GET | `/batches/{id}/adjustments` | `200` | Stock change history for a batch |
 
-### Errors
+Full details, including request bodies, rules and error codes, are in `docs/api-spec.md`.
 
-Every error uses one format, and stack traces are never returned:
+## Errors
+
+Every error uses the same shape, and stack traces are never returned:
 
 ```json
 { "error": { "code": "PRODUCT_NOT_FOUND", "message": "Product 9999 not found" } }
 ```
 
-Invalid input returns **400** (not FastAPI's default 422) with `code: "INVALID_INPUT"` and a `details` list of the failing fields. See `docs/design-decisions.md` (DEC-004, DEC-005).
+Invalid input returns **400** (not FastAPI's default 422) with `code: "INVALID_INPUT"` and a `details` list of the failing fields. See `docs/design-decisions.md` (DEC-004, DEC-005) and the error code catalogue in `docs/api-spec.md`.
+
+## Trying the API
+
+The sample files are in `requests/`, for use with the VS Code "REST Client" extension:
+
+- `auth.http`: sign up, log in, and check the current user. Copy the `access_token` from the login response into `@token`.
+- `inventory.http`: create a supplier and a batch, run the expiring-soon query, and record and check stock adjustments.
+- `product.http`: product CRUD. Every request in this file needs an `Authorization` header, which it does not yet include (see [Known limitations](#known-limitations)).
+
+Do not commit real tokens or passwords. Replace the `@token` value with your own locally only.
 
 ## Environment and Security Notes
 
-- The local PostgreSQL database is bound to `127.0.0.1` and is intended only for development.
-- Keep your `.env` file private. `DATABASE_URL` has no default in the code, so the app will not start without it.
-- In production, store credentials using your deployment platform's secret manager and keep the database on a private network rather than exposing local development settings.
+- `DATABASE_URL` and `JWT_SECRET_KEY` are read only from the environment. Keep `.env` private; it is git-ignored.
+- `JWT_SECRET_KEY` must be a long random value. The placeholder in `.env.example` must be replaced. See [Known limitations](#known-limitations) for the current fallback behaviour.
+- The local PostgreSQL database is bound to `127.0.0.1` and is intended for development only.
+- In production, store credentials in your deployment platform's secret manager and keep the database on a private network.
+- Only dummy data is used throughout this project.
+
 
 ## Documentation
 
-See the `/docs` folder for the project concept, work plan, data model, and API specifications.
+See the `docs/` folder for the project concept, work plan, data model, API specification, design decisions, test results and logs.
 
 ## Entity Relationship Diagram (ERD)
 
@@ -128,4 +186,4 @@ See the `/docs` folder for the project concept, work plan, data model, and API s
 
 ## Warning
 
-This is a learning project. Use dummy data only. Never input real pharmacy stock records, personal customer details, or real passwords.
+This is a learning project. Use dummy data only. Never enter real pharmacy stock records, personal customer details, or real passwords.

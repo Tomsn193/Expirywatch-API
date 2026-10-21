@@ -1,11 +1,12 @@
 @baseUrl = http://127.0.0.1:8000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzkyNTMwNzI3fQ.0lwtczwtr4IEz1qs1G7ou_1gLadl5jqtJuulpqhOssk
+@token = replace_with_actual_token
+
 ### 1. Sign up user
 POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "email": "owner1@example.test",
+  "email": "owner1@example.com",
   "password": "password123"
 }
 
@@ -14,7 +15,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "owner1@example.test",
+  "email": "owner1@example.com",
   "password": "password123"
 }
 
