@@ -18,10 +18,7 @@ Each owner has their own account. An owner can only see and change their own pro
 
 ## Current Status
 
-**Week 2: feature work complete, with known limitations.** Week 2 adds authentication and ownership, suppliers, batches, stock adjustments, the expiring-soon query and one error format. Some behaviour does not yet match the intended design; see [Known limitations](#known-limitations) below.
-
-- Week 1 (products) is tagged `week-1`.
-- Week 2 will be tagged `week-2` once the known limitations are fixed.
+**Week 2: feature work complete** Week 2 adds authentication and ownership, suppliers, batches, stock adjustments, the expiring-soon query and one error format.
 
 Full endpoint details are in [`docs/api-spec.md`](docs/api-spec.md).
 
