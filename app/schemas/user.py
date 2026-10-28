@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -22,8 +22,8 @@ class UserResponse(BaseModel):
     role: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    # Updated to Pydantic V2 format
+    model_config = ConfigDict(from_attributes=True)
 
 class Token(BaseModel):
     access_token: str

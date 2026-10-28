@@ -1,6 +1,6 @@
 # ExpiryWatch API Specification
 
-This document describes the API as it is implemented in Week 2, including the rules it enforces. Where the current code does not yet match the intended behaviour, the endpoint is marked **Known gap** and the gap is listed in [section 8](#8-known-gaps).
+This document describes the API as it is implemented in Week 2, including the rules it enforces. 
 
 ## 1. Conventions
 
