@@ -1,4 +1,3 @@
-# app/routers/products.py
 from typing import List, cast
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
@@ -12,7 +11,6 @@ from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
-
 def get_product_or_404(db: Session, product_id: int) -> Product:
     product = db.query(Product).filter(Product.id == product_id).first()
     if product is None:
@@ -23,7 +21,6 @@ def get_product_or_404(db: Session, product_id: int) -> Product:
         )
     return product
 
-
 def verify_product_ownership(product: Product, current_user: User) -> None:
     if cast(int, product.owner_id) != cast(int, current_user.id):
         raise APIError(
@@ -31,7 +28,6 @@ def verify_product_ownership(product: Product, current_user: User) -> None:
             "FORBIDDEN",
             "You do not have access to this product",
         )
-
 
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(
@@ -45,15 +41,7 @@ def create_product(
     db.refresh(db_product)
     return db_product
 
-
-@router.get("", response_model=List[ProductResponse])
-def list_products(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return db.query(Product).filter(Product.owner_id == current_user.id).all()
-
-
+# --- The single Paginated List Route ---
 @router.get("", response_model=List[ProductResponse])
 def get_products(
     skip: int = Query(0, ge=0),
@@ -70,6 +58,16 @@ def get_products(
     )
     return products
 
+# --- The Restored Single Product Route ---
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_product = get_product_or_404(db, product_id)
+    verify_product_ownership(db_product, current_user)
+    return db_product
 
 @router.put("/{product_id}", response_model=ProductResponse)
 def update_product(
@@ -88,7 +86,6 @@ def update_product(
     db.commit()
     db.refresh(db_product)
     return db_product
-
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(

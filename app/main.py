@@ -1,14 +1,13 @@
 from typing import Any, cast
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, products, suppliers, batches, adjustments
 
-# Initialize the rate limiter
-limiter = Limiter(key_func=get_remote_address)
+from app.routers import auth, products, suppliers, batches, adjustments
+from app.errors import APIError
+from app.limiter import limiter  # <--- Import shared limiter
 
 app = FastAPI(title="ExpiryWatch API")
 
@@ -16,16 +15,22 @@ app = FastAPI(title="ExpiryWatch API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
-# Configure CORS (Security requirement)
+@app.exception_handler(APIError)
+def api_error_handler(request: Request, exc: APIError):
+    error_code = getattr(exc, "code", getattr(exc, "error_code", "INTERNAL_ERROR"))
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": error_code, "message": exc.message}},
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Restrict in production
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(suppliers.router)

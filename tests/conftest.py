@@ -45,3 +45,7 @@ def client(db_session):
         
     # Clear overrides after the test
     app.dependency_overrides.clear()
+
+
+from app.main import limiter
+limiter.enabled = False
