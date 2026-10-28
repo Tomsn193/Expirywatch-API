@@ -1,8 +1,10 @@
 
 import jwt
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.database import get_db
 from app.models.user import User
@@ -16,6 +18,7 @@ from app.security import (
 )
 from app.errors import APIError as AppError
 
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -111,7 +114,9 @@ def signup(
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     payload: UserLogin,
     db: Session = Depends(get_db),
 ):

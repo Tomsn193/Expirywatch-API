@@ -1,20 +1,37 @@
-from fastapi import FastAPI
+from typing import Any, cast
 
-from app.errors import register_error_handlers
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.routers import auth, products, suppliers, batches, adjustments
 
-app = FastAPI(title="ExpiryWatch API", version="1.0.0")
+# Initialize the rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
-register_error_handlers(app)
+app = FastAPI(title="ExpiryWatch API")
 
-# Include the endpoints
-app.include_router(products.router)
+# Register the slowapi rate limiter exception handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
+
+# Configure CORS (Security requirement)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Restrict in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
 app.include_router(auth.router)
+app.include_router(products.router)
 app.include_router(suppliers.router)
 app.include_router(batches.router)
 app.include_router(adjustments.router)
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    """Simple check that the API is running."""
     return {"status": "ok"}

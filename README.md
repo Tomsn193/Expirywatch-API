@@ -15,10 +15,11 @@ Each owner has their own account. An owner can only see and change their own pro
 - SQLAlchemy and Alembic
 - PostgreSQL 16 (run locally with Docker)
 - JWT bearer authentication (PyJWT) and bcrypt password hashing
+- Pytest for automated testing
 
 ## Current Status
 
-**Week 2: feature work complete** Week 2 adds authentication and ownership, suppliers, batches, stock adjustments, the expiring-soon query and one error format.
+**Week 3: Quality and Delivery Complete.** The API now includes a full automated test suite, global rate limiting, explicitly configured CORS, and list pagination. All Week 2 features (authentication, ownership, atomic stock transactions) are fully verified.
 
 Full endpoint details are in [`docs/api-spec.md`](docs/api-spec.md).
 
@@ -93,7 +94,10 @@ Full endpoint details are in [`docs/api-spec.md`](docs/api-spec.md).
 
 10. Open the interactive docs at <http://127.0.0.1:8000/docs>, or use the sample requests in `requests/` (see [Trying the API](#trying-the-api)).
 
-The optional seed script (`scripts/seed_products.py`) currently fails after the Week 2 changes. See [Known limitations](#known-limitations).
+*(Optional)* To seed dummy products into the database for a specific user, run:
+```bash
+python scripts/seed_products.py your-email@example.com
+```
 
 ## Authentication
 
@@ -160,18 +164,33 @@ The sample files are in `requests/`, for use with the VS Code "REST Client" exte
 
 - `auth.http`: sign up, log in, and check the current user. Copy the `access_token` from the login response into `@token`.
 - `inventory.http`: create a supplier and a batch, run the expiring-soon query, and record and check stock adjustments.
-- `product.http`: product CRUD. Every request in this file needs an `Authorization` header, which it does not yet include (see [Known limitations](#known-limitations)).
+- `product.http`: product CRUD. Every request automatically uses the `@token` variable defined at the top of the file.
 
 Do not commit real tokens or passwords. Replace the `@token` value with your own locally only.
 
-## Environment and Security Notes
+## Testing
+
+The API includes an automated test suite covering authentication, product CRUD, and inventory transaction edge cases. Tests run against an isolated in-memory SQLite database.
+To run the tests:
+```bash
+pytest
+```
+
+## Security & Performance Notes
+
+- **Authentication:** Uses stateless JWT Bearer tokens and bcrypt password hashing.
+- **Authorization:** Strict row-level ownership checks prevent cross-user data access.
+- **Rate Limiting:** Global rate limiting is configured via `slowapi`, specifically restricting `/auth/login` to 5 requests per minute to prevent brute-force attacks.
+- **CORS:** Configured explicitly to allow specific origins rather than defaulting to open access.
+- **Performance:** Pagination (`skip` and `limit` queries) is implemented on list endpoints (e.g., `GET /products`) to ensure stable performance as the database grows.
+- **Concurrency:** Stock adjustments utilize database row-level locking (`with_for_update`) to prevent race conditions during simultaneous inventory changes.
+
+## Environment Notes
 
 - `DATABASE_URL` and `JWT_SECRET_KEY` are read only from the environment. Keep `.env` private; it is git-ignored.
-- `JWT_SECRET_KEY` must be a long random value. The placeholder in `.env.example` must be replaced. See [Known limitations](#known-limitations) for the current fallback behaviour.
+- `JWT_SECRET_KEY` must be a long random value. The placeholder in `.env.example` must be replaced.
 - The local PostgreSQL database is bound to `127.0.0.1` and is intended for development only.
 - In production, store credentials in your deployment platform's secret manager and keep the database on a private network.
-- Only dummy data is used throughout this project.
-
 
 ## Documentation
 

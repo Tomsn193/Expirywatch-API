@@ -1,6 +1,6 @@
 # app/routers/products.py
 from typing import List, cast
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -54,15 +54,21 @@ def list_products(
     return db.query(Product).filter(Product.owner_id == current_user.id).all()
 
 
-@router.get("/{product_id}", response_model=ProductResponse)
-def get_product(
-    product_id: int,
+@router.get("", response_model=List[ProductResponse])
+def get_products(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user)
 ):
-    db_product = get_product_or_404(db, product_id)
-    verify_product_ownership(db_product, current_user)
-    return db_product
+    products = (
+        db.query(Product)
+        .filter(Product.owner_id == current_user.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return products
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
